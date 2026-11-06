@@ -23,7 +23,7 @@ L'objectif est de proposer une plateforme collaborative où chacun peut partager
 - **Base de données :** à définir
 - **Framework :** à définir
 - **Interface utilisateur :** à définir
-- **Carte interactive :** à définir
+- **Carte interactive :** Leaflet avec le géocodage fait côté serveur en Python
 
 Les choix techniques seront précisés après validation des consignes avec l'enseignant.
 
