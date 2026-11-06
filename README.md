@@ -43,7 +43,10 @@ partage-bonnes-adresses/
 ```
 
 ## Installation
-
+pip install -r requirements.txt
+cp example.env .env
+python init_db.py
+flask run
 ### Prérequis
 
 - Python 3 installé
