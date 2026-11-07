@@ -1,0 +1,16 @@
+{% macro errors(field) %}
+  {% for error in field.errors %}
+    <div class="text-danger small">{{ error }}</div>
+  {% endfor %}
+{% endmacro %}
+
+{% macro rating(average, count) %}
+  {% if average is none %}
+    <span class="text-muted">Pas encore noté</span>
+  {% else %}
+    {% set stars = average | round | int %}
+    <span class="text-warning">{{ '★' * stars }}{{ '☆' * (5 - stars) }}</span>
+    {{ '%.1f' | format(average) }} / 5
+    <span class="text-muted">({{ count }} avis)</span>
+  {% endif %}
+{% endmacro %}

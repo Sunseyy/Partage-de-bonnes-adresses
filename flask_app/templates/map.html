@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}Carte{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='leaflet/leaflet.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<form method="GET" action="{{ url_for('places_map') }}" class="row g-2 mb-3">
+    <div class="col-md-4">
+        <select name="category" class="form-select" aria-label="Catégorie">
+            <option value="">Toutes les catégories</option>
+            {% for c in categories %}
+            <option value="{{ c }}" {{ 'selected' if c == category else '' }}>{{ c }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-primary">Filtrer</button>
+    </div>
+</form>
+<div id="map" class="map-large mb-4" data-places='{{ markers | tojson }}'></div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% from "_macros.html" import errors %}
+{% block title %}Inscription{% endblock %}
+{% block content %}
+<form method="POST">
+    <div class="mb-3">
+      <label for="username" class="form-label">Nom d'utilisateur</label>
+      {{ form.username(id='username', class_='form-control') }}
+      {{ errors(form.username) }}
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Mot de passe (8 caractères minimum)</label>
+      {{ form.password(id='password', class_='form-control') }}
+      {{ errors(form.password) }}
+    </div>
+    <div class="mb-3">
+      <label for="confirm" class="form-label">Confirmation</label>
+      {{ form.confirm(id='confirm', class_='form-control') }}
+      {{ errors(form.confirm) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Créer mon compte</button>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}

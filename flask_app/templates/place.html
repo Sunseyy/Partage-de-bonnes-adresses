@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rating, errors %}
+
+{% block title %}{{ place['name'] }}{% endblock %}
+
+{% block head %}
+<link href="{{ url_for('static', filename='leaflet/leaflet.css') }}" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <span class="badge bg-secondary">{{ place['category'] }}</span>
+        <p class="mb-1 mt-2">{{ place['address'] }}</p>
+        <p class="text-muted mb-1">Ajoutée par {{ place['author'] }}</p>
+        <p>{{ rating(place['average_rating'], place['review_count']) }}</p>
+    </div>
+    {% if 'user' in session and session['user']['id'] == place['user_id'] %}
+    <div class="btn-group">
+        <a class="btn btn-outline-primary" href="{{ url_for('place_edit', place_id=place['id']) }}">Modifier</a>
+        <a class="btn btn-outline-danger" href="{{ url_for('place_delete', place_id=place['id']) }}">Supprimer</a>
+    </div>
+    {% endif %}
+</div>
+
+<p class="multiline">{{ place['description'] }}</p>
+
+<div id="map" class="map-small mb-4" data-places='{{ markers | tojson }}'></div>
+
+<h2 class="h4">Avis</h2>
+{% if 'user' not in session %}
+<div class="alert alert-info">
+    <a href="{{ url_for('login') }}">Connectez-vous</a> pour lire les commentaires et donner votre avis.
+</div>
+{% else %}
+    {% if form is not none %}
+    <form method="POST" action="{{ url_for('place', place_id=place['id']) }}" class="mb-4">
+        <div class="mb-3">
+          <label for="rating" class="form-label">Note</label>
+          {{ form.rating(id='rating', class_='form-select') }}
+          {{ errors(form.rating) }}
+        </div>
+        <div class="mb-3">
+          <label for="comment" class="form-label">Commentaire</label>
+          {{ form.comment(id='comment', class_='form-control', rows=3) }}
+          {{ errors(form.comment) }}
+        </div>
+        <button type="submit" class="btn btn-primary">Publier mon avis</button>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    </form>
+    {% else %}
+    <div class="alert alert-success">Vous avez déjà donné votre avis sur cette adresse.</div>
+    {% endif %}
+
+    {% for review in reviews %}
+    <div class="card mb-2">
+        <div class="card-body">
+            <div class="d-flex justify-content-between">
+                <strong>{{ review['username'] }}</strong>
+                <span class="text-warning">{{ '★' * review['rating'] }}{{ '☆' * (5 - review['rating']) }}</span>
+            </div>
+            <p class="mb-1 multiline">{{ review['comment'] }}</p>
+            <small class="text-muted">{{ review['created_at'] }}</small>
+        </div>
+    </div>
+    {% else %}
+    <p class="text-muted">Aucun avis pour le moment.</p>
+    {% endfor %}
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
+<script src="{{ url_for('static', filename='map.js') }}"></script>
+{% endblock %}

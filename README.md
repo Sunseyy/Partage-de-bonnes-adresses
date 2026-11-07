@@ -46,7 +46,7 @@ partage-bonnes-adresses/
 pip install -r requirements.txt
 cp example.env .env
 python init_db.py
-flask run
+flask run ou python -m flask run
 ### Prérequis
 
 - Python 3 installé

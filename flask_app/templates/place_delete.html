@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block title %}Supprimer l'adresse{% endblock %}
+{% block content %}
+<p>Voulez-vous vraiment supprimer <strong>{{ place['name'] }}</strong> ? Les avis associés seront aussi supprimés.</p>
+<form method="POST">
+    <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
+    <a class="btn btn-outline-secondary" href="{{ url_for('place', place_id=place['id']) }}">Annuler</a>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}

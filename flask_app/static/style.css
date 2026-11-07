@@ -1,0 +1,4 @@
+#map { width: 100%; }
+#map.map-large { height: 550px; }
+#map.map-small { height: 300px; }
+.multiline { white-space: pre-line; }

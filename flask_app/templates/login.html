@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import errors %}
+{% block title %}Connexion{% endblock %}
+{% block content %}
+<form method="POST">
+    <div class="mb-3">
+      <label for="username" class="form-label">Nom d'utilisateur</label>
+      {{ form.username(id='username', class_='form-control') }}
+      {{ errors(form.username) }}
+    </div>
+    <div class="mb-3">
+      <label for="password" class="form-label">Mot de passe</label>
+      {{ form.password(id='password', class_='form-control') }}
+      {{ errors(form.password) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Se connecter</button>
+    <a class="btn btn-link" href="{{ url_for('register') }}">Créer un compte</a>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}

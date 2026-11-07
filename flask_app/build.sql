@@ -1,0 +1,36 @@
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS places;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users(
+  id UUID PRIMARY KEY,
+  username VARCHAR(32) NOT NULL UNIQUE COLLATE NOCASE,
+  password_hash VARCHAR(128) NOT NULL
+);
+
+CREATE TABLE places(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  user_id UUID NOT NULL,
+  name VARCHAR(100) NOT NULL,
+  address VARCHAR(255) NOT NULL,
+  category VARCHAR(30) NOT NULL,
+  description TEXT NOT NULL,
+  latitude REAL NOT NULL,
+  longitude REAL NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  CHECK (latitude BETWEEN -90 AND 90),
+  CHECK (longitude BETWEEN -180 AND 180)
+);
+
+CREATE TABLE reviews(
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  place_id INTEGER NOT NULL,
+  user_id UUID NOT NULL,
+  rating INTEGER NOT NULL,
+  comment TEXT NOT NULL,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (place_id) REFERENCES places(id) ON DELETE CASCADE,
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  CHECK (rating BETWEEN 1 AND 5),
+  UNIQUE (place_id, user_id)
+);

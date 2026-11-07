@@ -1,0 +1,10 @@
+flask
+flask_wtf
+wtforms
+werkzeug
+python-dotenv
+pytest
+pyopenssl
+flask-talisman
+argon2-cffi
+Flask-Session

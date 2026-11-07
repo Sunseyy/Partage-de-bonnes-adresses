@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import errors %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<form method="POST">
+    <div class="mb-3">
+      <label for="name" class="form-label">Nom du lieu</label>
+      {{ form.name(id='name', class_='form-control') }}
+      {{ errors(form.name) }}
+    </div>
+    <div class="mb-3">
+      <label for="address" class="form-label">Adresse</label>
+      {{ form.address(id='address', class_='form-control') }}
+      {{ errors(form.address) }}
+      <div class="form-text">Exemple : 7 Promenade Robert Laffont, 13002 Marseille</div>
+    </div>
+    <div class="mb-3">
+      <label for="category" class="form-label">Catégorie</label>
+      {{ form.category(id='category', class_='form-select') }}
+      {{ errors(form.category) }}
+    </div>
+    <div class="mb-3">
+      <label for="description" class="form-label">Description</label>
+      {{ form.description(id='description', class_='form-control', rows=4) }}
+      {{ errors(form.description) }}
+    </div>
+    <button type="submit" class="btn btn-primary">Enregistrer</button>
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+</form>
+{% endblock %}
