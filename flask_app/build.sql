@@ -17,6 +17,7 @@ CREATE TABLE places(
   description TEXT NOT NULL,
   latitude REAL NOT NULL,
   longitude REAL NOT NULL,
+  photo VARCHAR(64),
   FOREIGN KEY (user_id) REFERENCES users(id),
   CHECK (latitude BETWEEN -90 AND 90),
   CHECK (longitude BETWEEN -180 AND 180)

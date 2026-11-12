@@ -1,16 +1,149 @@
-{% macro errors(field) %}
-  {% for error in field.errors %}
-    <div class="text-danger small">{{ error }}</div>
+{# Morceaux d'interface réutilisés par plusieurs pages.
+   Exemple : {% from '_macros.html' import icon, place_card %} #}
+
+{# Une icône du sprite (_icons.html) : {{ icon('search') }} #}
+{% macro icon(name, class='') -%}
+<svg class="icon{{ ' ' ~ class if class }}" aria-hidden="true" focusable="false"><use href="#i-{{ name }}"></use></svg>
+{%- endmacro %}
+
+{% macro logo(class='') %}
+<a class="logo{{ ' ' ~ class if class }}" href="{{ url_for('home') }}" aria-label="Bonnes Adresses : retour à l'accueil">
+  {{ icon('pin', 'icon-solid logo-pin') }}
+  <span class="logo-text">Bonnes <span>Adresses</span></span>
+</a>
+{% endmacro %}
+
+{# Menu principal : (page, libellé, icône, pages pour lesquelles l'entrée est mise en avant) #}
+{% set NAVIGATION = [
+  ('home', 'Accueil', 'home', ['home']),
+  ('explore', 'Explorer', 'compass', ['explore']),
+  ('places_map', 'Carte', 'map', ['places_map']),
+  ('my_places', 'Mes adresses', 'bookmark', ['my_places', 'place_create', 'place_edit', 'place_delete'])
+] %}
+
+{% macro nav_links(class) %}
+  {% for endpoint, label, symbol, active_for in NAVIGATION %}
+  <a class="{{ class }}{{ ' is-active' if request.endpoint in active_for }}" href="{{ url_for(endpoint) }}"
+     {%- if request.endpoint == endpoint %} aria-current="page"{% endif %}>{{ icon(symbol) }}<span>{{ label }}</span></a>
   {% endfor %}
 {% endmacro %}
 
+{# Barre d'onglets affichée en bas de l'écran sur mobile #}
+{% macro tabbar() %}
+<nav class="tabbar" aria-label="Navigation">{{ nav_links('tab') }}</nav>
+{% endmacro %}
+
+{# Jeton CSRF : à placer dans chaque formulaire envoyé en POST #}
+{% macro csrf() -%}
+<input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+{%- endmacro %}
+
+{# Messages d'erreur d'un champ de formulaire #}
+{% macro errors(field) %}
+  {% for error in field.errors %}
+  <p class="field-error">{{ icon('alert-circle') }}<span>{{ error }}</span></p>
+  {% endfor %}
+{% endmacro %}
+
+{# Champ « mot de passe ». toggles : identifiants des champs que le bouton « œil » affiche
+   ou masque (bouton montré par static/app.js, inutile sans JavaScript). #}
+{% macro password_input(field, id, placeholder, autocomplete, toggles='') %}
+<div class="password">
+  {{ field(id=id, class_='input', placeholder=placeholder, autocomplete=autocomplete) }}
+  {% if toggles %}
+  <button type="button" class="password-toggle" data-toggle-password="{{ toggles }}" aria-pressed="false" hidden>
+    {{- icon('eye') }}<span class="visually-hidden">Afficher le mot de passe</span>
+  </button>
+  {% endif %}
+</div>
+{% endmacro %}
+
+{# Messages « flash » : catégories success, error ou info #}
+{% macro flashes() %}
+  {% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+  <div class="flashes" role="status">
+    {% for category, message in messages %}
+    {% set kind = category if category in ['success', 'error'] else 'info' %}
+    <p class="flash flash-{{ kind }}">
+      {{ icon({'success': 'check-circle', 'error': 'alert-circle'}.get(kind, 'info')) }}
+      <span>{{ message }}</span>
+      <button type="button" class="flash-close" data-dismiss aria-label="Fermer ce message" hidden>{{ icon('x') }}</button>
+    </p>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% endwith %}
+{% endmacro %}
+
+{# Pastille ronde avec les initiales : « sara.beldi » donne « SB » #}
+{% macro avatar(username, class='') -%}
+<span class="avatar{{ ' ' ~ class if class }}" aria-hidden="true">{{ username | initials }}</span>
+{%- endmacro %}
+
+{# Note moyenne en une ligne : ★ 4.5 (2 avis) #}
 {% macro rating(average, count) %}
   {% if average is none %}
-    <span class="text-muted">Pas encore noté</span>
+  <span class="rating rating-none">{{ icon('star') }} Pas encore d'avis</span>
   {% else %}
-    {% set stars = average | round | int %}
-    <span class="text-warning">{{ '★' * stars }}{{ '☆' * (5 - stars) }}</span>
-    {{ '%.1f' | format(average) }} / 5
-    <span class="text-muted">({{ count }} avis)</span>
+  <span class="rating">
+    {{ icon('star', 'icon-solid') }}
+    <span class="visually-hidden">Note moyenne :</span>
+    <strong>{{ '%.1f' | format(average) }}</strong>
+    <span class="visually-hidden">sur 5</span>
+    <span class="rating-count">({{ count }} avis)</span>
+  </span>
   {% endif %}
+{% endmacro %}
+
+{# Cinq étoiles, pleines, à moitié pleines ou vides selon la moyenne #}
+{% macro stars(average) %}
+<span class="stars" aria-hidden="true">
+  {% for i in range(1, 6) %}
+  <span class="star{{ ' is-full' if average >= i - 0.25 else (' is-half' if average >= i - 0.75 else '') }}">
+    {{- icon('star', 'icon-solid') }}{{ icon('star', 'icon-solid star-fill') -}}
+  </span>
+  {% endfor %}
+</span>
+{% endmacro %}
+
+{# Catégorie d'un lieu : pastille de couleur avec son icône, puis le libellé #}
+{% macro category_tag(place) %}
+  {% set key = place.category | category_key %}
+  <span class="category"><span class="cat-disc cat-{{ key }}">{{ icon('cat-' ~ key) }}</span>{{ key | category_label }}</span>
+{% endmacro %}
+
+{# Photo d'un lieu ; sans photo, un aplat de la couleur de sa catégorie #}
+{% macro cover(place, class='', alt='') %}
+  {% if place.photo %}
+  <img class="cover{{ ' ' ~ class if class }}" src="{{ url_for('photo', filename=place.photo) }}" alt="{{ alt }}" loading="lazy" decoding="async">
+  {% else %}
+  {% set key = place.category | category_key %}
+  <span class="cover cover-empty cat-{{ key }}{{ ' ' ~ class if class }}" aria-hidden="true">{{ icon('cat-' ~ key) }}</span>
+  {% endif %}
+{% endmacro %}
+
+{# Carte d'une adresse dans une liste. level : niveau du titre (2 pour <h2>, 3 pour <h3>) #}
+{% macro place_card(place, level=2) %}
+<article class="place-card">
+  {{ cover(place, 'place-card-photo') }}
+  <div class="place-card-body">
+    <h{{ level }} class="place-card-name"><a href="{{ url_for('place', place_id=place.id) }}">{{ place.name }}</a></h{{ level }}>
+    <p class="place-card-line">{{ category_tag(place) }}</p>
+    <p class="place-card-line place-card-address">{{ icon('map-pin') }}<span>{{ place.address }}</span></p>
+    <p class="place-card-line">{{ rating(place.average_rating, place.review_count) }}</p>
+  </div>
+  <span class="btn btn-primary btn-sm place-card-cta" aria-hidden="true">Voir détails</span>
+</article>
+{% endmacro %}
+
+{% macro footer() %}
+<footer class="footer">
+  <p class="footer-note">De bonnes adresses pour de belles découvertes {{ icon('heart') }}</p>
+  <p class="footer-links">
+    <a href="{{ url_for('explore') }}">Explorer</a>
+    <a href="{{ url_for('places_map') }}">Carte</a>
+    <a href="{{ url_for('credits') }}">Crédits</a>
+  </p>
+</footer>
 {% endmacro %}

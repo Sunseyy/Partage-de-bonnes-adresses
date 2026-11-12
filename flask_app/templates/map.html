@@ -1,29 +1,87 @@
-{% extends "base.html" %}
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon %}
 
 {% block title %}Carte{% endblock %}
+{% block main_class %} main-map{% endblock %}
 
 {% block head %}
 <link href="{{ url_for('static', filename='leaflet/leaflet.css') }}" rel="stylesheet">
 {% endblock %}
 
 {% block content %}
-<form method="GET" action="{{ url_for('places_map') }}" class="row g-2 mb-3">
-    <div class="col-md-4">
-        <select name="category" class="form-select" aria-label="Catégorie">
-            <option value="">Toutes les catégories</option>
-            {% for c in categories %}
-            <option value="{{ c }}" {{ 'selected' if c == category else '' }}>{{ c }}</option>
-            {% endfor %}
-        </select>
-    </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-primary">Filtrer</button>
-    </div>
-</form>
-<div id="map" class="map-large mb-4" data-places='{{ markers | tojson }}'></div>
+<header class="page-head">
+  <div>
+    <h1>Carte des adresses</h1>
+    <p>Découvrez les lieux autour de vous</p>
+  </div>
+</header>
+
+<div class="map-shell">
+  {# Les marqueurs sont transmis à static/map.js dans l'attribut data-places #}
+  <div id="map" class="map" data-places='{{ markers | tojson }}'></div>
+
+  <div class="map-overlay">
+    <form class="search search-map" method="GET" action="{{ url_for('places_map') }}" role="search">
+      {{ icon('search') }}
+      <label class="visually-hidden" for="q">Rechercher sur la carte</label>
+      <input id="q" type="search" name="q" value="{{ search or '' }}" maxlength="100"
+             placeholder="Rechercher sur la carte">
+      {% if category %}<input type="hidden" name="category" value="{{ category }}">{% endif %}
+    </form>
+
+    {# Chaque ligne de la légende filtre la carte sur une catégorie #}
+    <details class="legend" open>
+      <summary>
+        <span>Légende{% if category %} <span class="legend-current">· {{ category_plurals[category] }}</span>{% endif %}</span>
+        {{ icon('chevron-down') }}
+      </summary>
+      <ul>
+        {% for key, label in category_plurals.items() %}
+        <li>
+          <a class="legend-item{{ ' is-active' if key == category }}"
+             href="{{ url_for('places_map', category=(none if key == category else key), q=search) }}"
+             {%- if key == category %} aria-current="true"{% endif %}>
+            <span class="cat-disc cat-{{ key }}">{{ icon('cat-' ~ key) }}</span>{{ label }}
+          </a>
+        </li>
+        {% endfor %}
+      </ul>
+      {% if category or search %}
+      <a class="legend-reset" href="{{ url_for('places_map') }}">Tout afficher</a>
+      {% endif %}
+    </details>
+  </div>
+
+  {# Messages posés sur la carte ; static/map.js y ajoute les erreurs de localisation #}
+  <div id="map-messages" class="map-messages" aria-live="polite">
+    {% if not markers %}
+    <p class="map-message">Aucune adresse ne correspond. <a href="{{ url_for('places_map') }}">Tout afficher</a></p>
+    {% endif %}
+  </div>
+
+  {# Fiche du lieu sélectionné, remplie par static/map.js à partir du modèle ci-dessous #}
+  <div id="map-card" class="map-card-slot" aria-live="polite"></div>
+  <template id="map-card-template">
+    <article class="map-card">
+      <img class="cover map-card-photo" alt="" hidden>
+      <span class="cover cover-empty map-card-photo" aria-hidden="true" hidden>{{ icon('cat-autre') }}</span>
+      <div class="map-card-body">
+        <h2 class="map-card-name"></h2>
+        <p class="rating map-card-rating">{{ icon('star', 'icon-solid') }}<strong></strong><span class="rating-count"></span></p>
+        <p class="map-card-meta"></p>
+        <a class="btn btn-primary btn-sm map-card-link" href="{{ url_for('explore') }}">Voir détails</a>
+      </div>
+      <button type="button" class="map-card-close" aria-label="Fermer la fiche">{{ icon('x') }}</button>
+    </article>
+  </template>
+
+  <noscript>
+    <p class="map-message">La carte a besoin de JavaScript. <a href="{{ url_for('explore') }}">Voir la liste des adresses</a></p>
+  </noscript>
+</div>
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
-<script src="{{ url_for('static', filename='map.js') }}"></script>
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}" defer></script>
+<script src="{{ url_for('static', filename='map.js') }}" defer></script>
 {% endblock %}

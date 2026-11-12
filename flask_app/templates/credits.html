@@ -1,0 +1,91 @@
+{% extends 'layout.html' %}
+
+{% block title %}Crédits{% endblock %}
+
+{# (utilisation, titre sur Wikimedia Commons, auteur, licence, adresse de la licence, page de la photo) #}
+{% set BY_2 = ('CC BY 2.0', 'https://creativecommons.org/licenses/by/2.0/deed.fr') %}
+{% set BY_SA_3 = ('CC BY-SA 3.0', 'https://creativecommons.org/licenses/by-sa/3.0/deed.fr') %}
+{% set BY_SA_4 = ('CC BY-SA 4.0', 'https://creativecommons.org/licenses/by-sa/4.0/deed.fr') %}
+{% set PHOTOS = [
+  ("Page d'accueil, connexion et inscription", 'Le rouge aux fenêtres du Vieux Port', 'Didier PILLET', BY_SA_3,
+   'https://commons.wikimedia.org/wiki/File:Le_rouge_aux_fen%C3%AAtres_du_Vieux_Port.jpg'),
+  ('Notre-Dame de la Garde', 'Basilique Notre-Dame-de-la-Garde in Marseille at sunset', 'Giles Laurent', BY_SA_4,
+   'https://commons.wikimedia.org/wiki/File:1027_Basilique_Notre-Dame-de-la-Garde_in_Marseille_at_sunset_Photo_by_Giles_Laurent.jpg'),
+  ('Vieux-Port', 'Vieux-Port de Marseille, France', 'Clément Bardot', BY_SA_4,
+   'https://commons.wikimedia.org/wiki/File:Vieux-Port_de_Marseille,_France.jpg'),
+  ('Café de la Plaine (exemple)', 'Warm cup of coffee on a table at a cafe', 'Shixart1985', BY_2,
+   'https://commons.wikimedia.org/wiki/File:Warm_cup_of_coffee_on_a_table_at_a_cafe.jpg'),
+  ('MuCEM', "Le Musée des Civilisations de l'Europe et de la Méditerranée - MuCEM (Marseille)", 'Jean-Pierre Dalbéra', BY_2,
+   'https://commons.wikimedia.org/wiki/File:Le_Mus%C3%A9e_des_Civilisations_de_l%27Europe_et_de_la_M%C3%A9diterran%C3%A9e_-_MuCEM_(Marseille)_(14178627994).jpg'),
+  ('Palais Longchamp', 'Palais Longchamp 2', 'kallerna', BY_SA_4,
+   'https://commons.wikimedia.org/wiki/File:Palais_Longchamp_2.jpg'),
+  ('Restaurant du Panier (exemple)', 'Bouillabaisse 07', 'Arnaud 25', BY_SA_4,
+   'https://commons.wikimedia.org/wiki/File:Bouillabaisse_07.jpg'),
+  ('Hôtel du Vallon (exemple)', 'Vallon des Auffes 011', 'Arnaud 25', BY_SA_4,
+   'https://commons.wikimedia.org/wiki/File:Vallon_des_Auffes_011.jpg'),
+  ('Plage des Catalans', 'Plage des catalans, Marseille', 'Jeanne Menjoulet', BY_2,
+   'https://commons.wikimedia.org/wiki/File:Plage_des_catalans,_Marseille_(22463883475).jpg'),
+  ('Calanque de Sormiou', 'Marseille Calanque Sormiou', 'Benh LIEU SONG', BY_SA_3,
+   'https://commons.wikimedia.org/wiki/File:Marseille_Calanque_Sormiou.jpg'),
+  ('Bar du Cours Julien (exemple)', 'Cours Julien à Marseille (France)', 'DC', BY_SA_3,
+   'https://commons.wikimedia.org/wiki/File:Cours_Julien_%C3%A0_Marseille_(France).jpg')
+] %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Crédits</h1>
+    <p>Les photos, polices, icônes et cartes utilisées par le site, et leurs licences.</p>
+  </div>
+</header>
+
+<div class="prose">
+  <section class="card">
+    <h2>Photos</h2>
+    <p>Les photos de démonstration viennent de <a href="https://commons.wikimedia.org/" rel="noopener noreferrer">Wikimedia Commons</a>.
+       Elles ont été redimensionnées et sont recadrées à l'affichage ; chacune reste sous la licence indiquée.
+       Les lieux marqués « (exemple) » sont fictifs : leur photo illustre seulement le quartier ou le type de lieu.</p>
+    <div class="table-scroll">
+      <table class="credits">
+        <thead>
+          <tr><th scope="col">Utilisation</th><th scope="col">Photo</th><th scope="col">Auteur</th><th scope="col">Licence</th></tr>
+        </thead>
+        <tbody>
+          {% for usage, title, author, licence, source in PHOTOS %}
+          <tr>
+            <th scope="row">{{ usage }}</th>
+            <td><a href="{{ source }}" rel="noopener noreferrer">{{ title }}</a></td>
+            <td>{{ author }}</td>
+            <td><a href="{{ licence[1] }}" rel="noopener noreferrer">{{ licence[0] }}</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <p class="muted">Les photos ajoutées par les utilisateurs appartiennent à leurs auteurs.</p>
+  </section>
+
+  <section class="card">
+    <h2>Carte</h2>
+    <p>Fond de carte et recherche des coordonnées d'une adresse :
+       © les contributeurs d'<a href="https://www.openstreetmap.org/copyright" rel="noopener noreferrer">OpenStreetMap</a>
+       (licence ODbL), avec le service Nominatim. Affichage de la carte :
+       <a href="https://leafletjs.com/" rel="noopener noreferrer">Leaflet</a> (licence BSD à 2 clauses).</p>
+  </section>
+
+  <section class="card">
+    <h2>Polices et icônes</h2>
+    <p>Polices <a href="https://fonts.google.com/specimen/Outfit" rel="noopener noreferrer">Outfit</a> et
+       <a href="https://fonts.google.com/specimen/Caveat" rel="noopener noreferrer">Caveat</a>, sous licence
+       SIL Open Font License 1.1 (textes des licences dans le dossier <code>static/fonts</code>).
+       Icônes dessinées d'après <a href="https://feathericons.com/" rel="noopener noreferrer">Feather</a> (licence MIT)
+       et <a href="https://lucide.dev/" rel="noopener noreferrer">Lucide</a> (licence ISC).</p>
+  </section>
+
+  <section class="card">
+    <h2>Le projet</h2>
+    <p>« Bonnes Adresses » est un projet universitaire de programmation web (sujet n°8, « Partage de bonnes adresses »),
+       réalisé avec Flask et SQLite.</p>
+  </section>
+</div>
+{% endblock %}

@@ -1,75 +1,179 @@
-{% extends "base.html" %}
-{% from "_macros.html" import rating, errors %}
+{% extends 'base.html' %}
+{% from '_macros.html' import icon, csrf, errors, flashes, avatar, rating, stars, category_tag, cover, tabbar, footer %}
 
 {% block title %}{{ place['name'] }}{% endblock %}
+{% block body_class %}page-detail{% endblock %}
 
 {% block head %}
 <link href="{{ url_for('static', filename='leaflet/leaflet.css') }}" rel="stylesheet">
 {% endblock %}
 
-{% block content %}
-<div class="d-flex justify-content-between align-items-start mb-3">
-    <div>
-        <span class="badge bg-secondary">{{ place['category'] }}</span>
-        <p class="mb-1 mt-2">{{ place['address'] }}</p>
-        <p class="text-muted mb-1">Ajoutée par {{ place['author'] }}</p>
-        <p>{{ rating(place['average_rating'], place['review_count']) }}</p>
-    </div>
-    {% if 'user' in session and session['user']['id'] == place['user_id'] %}
-    <div class="btn-group">
-        <a class="btn btn-outline-primary" href="{{ url_for('place_edit', place_id=place['id']) }}">Modifier</a>
-        <a class="btn btn-outline-danger" href="{{ url_for('place_delete', place_id=place['id']) }}">Supprimer</a>
-    </div>
-    {% endif %}
-</div>
+{% block body %}
+{% set is_owner = 'user' in session and session['user']['id'] == place['user_id'] %}
+{% set coordinates = place['latitude'] ~ ',' ~ place['longitude'] %}
+<main class="detail" id="contenu">
+  {{ flashes() }}
+  <div class="detail-grid">
+    <div class="detail-main">
+      <div class="detail-photo{{ ' is-empty' if not place['photo'] }}">
+        {{ cover(place, alt='Photo de ' ~ place['name']) }}
+        {# data-back : pages vers lesquelles static/app.js revient avec l'historique du navigateur #}
+        <a class="back" href="{{ url_for('explore') }}"
+           data-back="{{ url_for('explore') }} {{ url_for('places_map') }} {{ url_for('my_places') }} {{ url_for('home') }}">{{ icon('arrow-left') }} Retour</a>
+      </div>
 
-<p class="multiline">{{ place['description'] }}</p>
+      <div class="detail-summary">
+        <div class="detail-info">
+          <h1>{{ place['name'] }}</h1>
+          <p class="detail-line">{{ category_tag(place) }}</p>
+          <p class="detail-line">{{ icon('map-pin') }}<span>{{ place['address'] }}</span></p>
+          <p class="detail-line">{{ rating(place['average_rating'], place['review_count']) }}</p>
 
-<div id="map" class="map-small mb-4" data-places='{{ markers | tojson }}'></div>
-
-<h2 class="h4">Avis</h2>
-{% if 'user' not in session %}
-<div class="alert alert-info">
-    <a href="{{ url_for('login') }}">Connectez-vous</a> pour lire les commentaires et donner votre avis.
-</div>
-{% else %}
-    {% if form is not none %}
-    <form method="POST" action="{{ url_for('place', place_id=place['id']) }}" class="mb-4">
-        <div class="mb-3">
-          <label for="rating" class="form-label">Note</label>
-          {{ form.rating(id='rating', class_='form-select') }}
-          {{ errors(form.rating) }}
+          <ul class="actions">
+            <li><a href="https://www.google.com/maps/dir/?api=1&amp;destination={{ coordinates }}" target="_blank" rel="noopener noreferrer">{{ icon('navigation') }} Itinéraire</a></li>
+            <li><a href="#avis">{{ icon('message') }} Avis</a></li>
+            <li><a href="{{ url_for('places_map', q=place['name']) }}">{{ icon('map') }} Voir sur la carte</a></li>
+          </ul>
         </div>
-        <div class="mb-3">
-          <label for="comment" class="form-label">Commentaire</label>
-          {{ form.comment(id='comment', class_='form-control', rows=3) }}
-          {{ errors(form.comment) }}
-        </div>
-        <button type="submit" class="btn btn-primary">Publier mon avis</button>
-        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-    </form>
-    {% else %}
-    <div class="alert alert-success">Vous avez déjà donné votre avis sur cette adresse.</div>
-    {% endif %}
 
-    {% for review in reviews %}
-    <div class="card mb-2">
-        <div class="card-body">
-            <div class="d-flex justify-content-between">
+        <section class="card score-card">
+          <h2>Note moyenne</h2>
+          {% if place['average_rating'] is none %}
+          <p class="score score-none">Pas encore de note</p>
+          <p class="muted">Soyez la première personne à donner votre avis.</p>
+          {% else %}
+          <p class="score">{{ '%.1f' | format(place['average_rating']) }} <span>/ 5</span></p>
+          {{ stars(place['average_rating']) }}
+          <p class="muted">({{ place['review_count'] }} avis)</p>
+          {% endif %}
+        </section>
+      </div>
+
+      <section class="detail-text">
+        <h2>Description</h2>
+        <p class="multiline">{{ place['description'] }}</p>
+        <h2>Catégorie</h2>
+        {% set key = place['category'] | category_key %}
+        <p><span class="chip cat-{{ key }}">{{ icon('cat-' ~ key) }}{{ key | category_label }}</span></p>
+
+        {# Seule la personne qui a partagé l'adresse peut la modifier ou la supprimer #}
+        {% if is_owner %}
+        <div class="owner-actions">
+          <p class="muted">Vous avez partagé cette adresse.</p>
+          <a class="btn btn-outline btn-sm" href="{{ url_for('place_edit', place_id=place['id']) }}">{{ icon('edit') }} Modifier</a>
+          <a class="btn btn-outline-danger btn-sm" href="{{ url_for('place_delete', place_id=place['id']) }}">{{ icon('trash') }} Supprimer</a>
+        </div>
+        {% else %}
+        <p class="shared-by muted">Adresse partagée par {{ place['author'] }}</p>
+        {% endif %}
+      </section>
+    </div>
+
+    <aside class="detail-side">
+      <div class="side-head">
+        <h2>Localisation</h2>
+        {# Bouton affiché par static/app.js si le navigateur sait partager ou copier un lien #}
+        <button type="button" class="btn btn-outline btn-sm" data-share="{{ place['name'] }}" hidden>{{ icon('share') }} <span>Partager</span></button>
+      </div>
+      {# « js-only » : sans JavaScript, pas de cadre vide ; le lien Google Maps ci-dessous suffit #}
+      <div id="map" class="map map-mini js-only" data-mini data-places='{{ markers | tojson }}'></div>
+      <a class="btn btn-outline btn-block" href="https://www.google.com/maps/search/?api=1&amp;query={{ coordinates }}" target="_blank" rel="noopener noreferrer">{{ icon('external-link') }} Ouvrir dans Google Maps</a>
+
+      <section class="reviews" id="avis">
+        <div class="side-head">
+          <h2>Avis des utilisateurs</h2>
+          {% if form is not none %}
+          <a class="btn btn-primary btn-sm" href="#laisser-un-avis" data-open-dialog="laisser-un-avis">Laisser un avis</a>
+          {% elif 'user' not in session %}
+          <a class="btn btn-primary btn-sm" href="{{ url_for('login', next=url_for('place', place_id=place['id'])) }}">Laisser un avis</a>
+          {% endif %}
+        </div>
+
+        {% if 'user' not in session %}
+        {# Les commentaires sont réservés aux utilisateurs connectés #}
+        <p class="notice">
+          {{ icon('lock') }}
+          <span><a href="{{ url_for('login', next=url_for('place', place_id=place['id'])) }}">Connectez-vous</a> pour lire les commentaires et laisser un avis.</span>
+        </p>
+        {% else %}
+          {% if user_review is not none %}
+          <p class="notice">{{ icon('check-circle') }}<span>Vous avez déjà donné votre avis sur cette adresse.</span></p>
+          {% endif %}
+          {% for review in reviews %}
+          <article class="review{{ ' is-mine' if user_review is not none and review['id'] == user_review['id'] }}">
+            {{ avatar(review['username']) }}
+            <div class="review-body">
+              <p class="review-head">
                 <strong>{{ review['username'] }}</strong>
-                <span class="text-warning">{{ '★' * review['rating'] }}{{ '☆' * (5 - review['rating']) }}</span>
+                <span class="rating">{{ icon('star', 'icon-solid') }} {{ review['rating'] }}/5</span>
+              </p>
+              <p class="multiline">{{ review['comment'] }}</p>
+              <p class="review-date">{{ review['created_at'] | date_fr }}</p>
             </div>
-            <p class="mb-1 multiline">{{ review['comment'] }}</p>
-            <small class="text-muted">{{ review['created_at'] }}</small>
-        </div>
+          </article>
+          {% else %}
+          <p class="muted">Aucun avis pour le moment. Soyez la première personne à donner le vôtre !</p>
+          {% endfor %}
+        {% endif %}
+      </section>
+    </aside>
+  </div>
+</main>
+
+{{ footer() }}
+{{ tabbar() }}
+
+{% if form is not none %}
+{# Fenêtre « Laisser un avis ». Sans JavaScript elle s'ouvre grâce à l'ancre #laisser-un-avis
+   (règle CSS :target) ; avec JavaScript, static/app.js en fait une vraie fenêtre modale. #}
+<dialog class="modal" id="laisser-un-avis" aria-labelledby="titre-avis"{{ ' data-open' if form.errors }}>
+  <form class="modal-box" method="POST" action="{{ url_for('place', place_id=place['id'], _anchor='laisser-un-avis') }}">
+    {{ csrf() }}
+    <div class="modal-head">
+      <h2 id="titre-avis">Laisser un avis</h2>
+      <a class="modal-close" href="#avis" data-close-dialog aria-label="Fermer">{{ icon('x') }}</a>
     </div>
-    {% else %}
-    <p class="text-muted">Aucun avis pour le moment.</p>
-    {% endfor %}
+
+    <div class="card modal-body">
+    <div class="review-place">
+      {{ cover(place, 'review-place-photo') }}
+      <div>
+        <p class="review-place-name">{{ place['name'] }}</p>
+        <p class="muted">{{ place['category'] | category_label }} · {{ place['address'] }}</p>
+        <fieldset class="star-picker">
+          <legend class="visually-hidden">Votre note</legend>
+          {% for value in range(1, 6) %}
+          <label class="star-option" title="{{ value }} sur 5">
+            <input type="radio" name="rating" value="{{ value }}" required{{ ' checked' if form.rating.data == value }}>
+            {{ icon('star', 'icon-solid') }}
+            <span class="visually-hidden">{{ value }} sur 5</span>
+          </label>
+          {% endfor %}
+          <output class="star-value" data-star-output hidden></output>
+        </fieldset>
+        {{ errors(form.rating) }}
+      </div>
+    </div>
+
+    <div class="field">
+      <label class="visually-hidden" for="comment">Votre commentaire</label>
+      <div class="textarea-wrap">
+        <textarea id="comment" class="input" name="comment" rows="5" maxlength="500" required
+                  placeholder="Votre commentaire..." data-counter="compteur-avis">{{ form.comment.data or '' }}</textarea>
+        <span class="counter" id="compteur-avis" hidden></span>
+      </div>
+      {{ errors(form.comment) }}
+    </div>
+
+    <button type="submit" class="btn btn-primary btn-block btn-lg">Valider</button>
+    <p class="hint">{{ icon('info') }}<span>Vous ne pouvez laisser qu'un seul avis par lieu.</span></p>
+    </div>
+  </form>
+</dialog>
 {% endif %}
 {% endblock %}
 
 {% block scripts %}
-<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}"></script>
-<script src="{{ url_for('static', filename='map.js') }}"></script>
+<script src="{{ url_for('static', filename='leaflet/leaflet.js') }}" defer></script>
+<script src="{{ url_for('static', filename='map.js') }}" defer></script>
 {% endblock %}

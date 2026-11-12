@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import icon, logo, csrf, flashes, avatar, place_card, tabbar, footer %}
+
+{% block title %}Accueil{% endblock %}
+{% block body_class %}page-home{% endblock %}
+
+{% block body %}
+{# La barre du haut est posée par-dessus la photo d'accueil #}
+<header class="hero-bar">
+  {{ logo('logo-light') }}
+  <nav class="hero-links" aria-label="Navigation principale">
+    <a href="{{ url_for('explore') }}">Explorer</a>
+    <a href="{{ url_for('places_map') }}">Carte</a>
+    <a href="{{ url_for('my_places') }}">Mes adresses</a>
+  </nav>
+  <div class="hero-account">
+    {% if 'user' in session %}
+    <a class="hero-user" href="{{ url_for('my_places') }}">{{ avatar(session['user']['username'], 'avatar-light') }}<span>{{ session['user']['username'] }}</span></a>
+    <form method="POST" action="{{ url_for('logout') }}">
+      {{ csrf() }}
+      <button type="submit" class="btn btn-primary">Se déconnecter</button>
+    </form>
+    {% else %}
+    <a class="hero-icon" href="{{ url_for('register') }}" aria-label="Créer un compte" title="Créer un compte">{{ icon('user') }}</a>
+    <a class="btn btn-primary" href="{{ url_for('login') }}">Se connecter</a>
+    {% endif %}
+  </div>
+</header>
+
+<main id="contenu">
+  <section class="hero">
+    <div class="hero-body">
+      {{ flashes() }}
+      <h1>Les meilleures adresses partagées par une communauté passionnée</h1>
+      <p class="hero-lead">Restaurants, cafés, activités, commerces...<br>Découvrez, partagez, explorez !</p>
+
+      <form class="search search-hero" method="GET" action="{{ url_for('explore') }}" role="search">
+        {{ icon('search') }}
+        <label class="visually-hidden" for="hero-search">Rechercher une adresse</label>
+        <input id="hero-search" type="search" name="q" maxlength="100"
+               placeholder="Rechercher un lieu, une adresse, une catégorie...">
+        <button type="submit" class="search-submit" aria-label="Rechercher">{{ icon('arrow-right') }}</button>
+      </form>
+
+      <ul class="tiles">
+        {% for key, label in category_plurals.items() %}
+        <li><a class="tile cat-{{ key }}" href="{{ url_for('explore', category=key) }}">{{ icon('cat-' ~ key) }}<span>{{ label }}</span></a></li>
+        {% endfor %}
+      </ul>
+    </div>
+    <p class="hero-note" aria-hidden="true">Marseille et ses alentours {{ icon('heart') }}</p>
+  </section>
+
+  {% if best_places %}
+  <section class="home-section">
+    <div class="section-head">
+      <div>
+        <h2>Les mieux notées</h2>
+        <p>Les adresses préférées de la communauté.</p>
+      </div>
+      <a class="btn btn-outline" href="{{ url_for('explore') }}">Toutes les adresses {{ icon('arrow-right') }}</a>
+    </div>
+    <div class="cards">
+      {% for place in best_places %}
+      {{ place_card(place, 3) }}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+  <section class="home-section">
+    <h2 class="visually-hidden">Comment ça marche</h2>
+    <ul class="steps">
+      <li>
+        <span class="step-icon">{{ icon('search') }}</span>
+        <h3>Découvrir</h3>
+        <p>Parcourez les adresses et leurs notes moyennes, même sans compte.</p>
+      </li>
+      <li>
+        <span class="step-icon">{{ icon('share') }}</span>
+        <h3>Partager</h3>
+        <p>Ajoutez vos lieux préférés et donnez votre avis, une fois par lieu.</p>
+      </li>
+      <li>
+        <span class="step-icon">{{ icon('map') }}</span>
+        <h3>Explorer</h3>
+        <p>Retrouvez chaque adresse sur la carte, classée par catégorie.</p>
+      </li>
+    </ul>
+  </section>
+</main>
+
+{{ footer() }}
+{{ tabbar() }}
+{% endblock %}

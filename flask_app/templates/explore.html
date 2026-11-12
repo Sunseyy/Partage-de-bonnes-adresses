@@ -1,0 +1,74 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon, place_card %}
+
+{% block title %}Explorer{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Explorer les adresses</h1>
+    <p>Trouvez les meilleures adresses selon vos envies !</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('place_create') }}">{{ icon('plus') }} Ajouter une adresse</a>
+</header>
+
+{# Formulaire en GET : la recherche, le filtre et le tri se retrouvent dans l'adresse de la page #}
+<form class="filters" method="GET" action="{{ url_for('explore') }}" role="search" data-autosubmit>
+  <div class="search search-field">
+    {{ icon('search') }}
+    <label class="visually-hidden" for="q">Rechercher une adresse</label>
+    <input id="q" type="search" name="q" value="{{ search or '' }}" maxlength="100"
+           placeholder="Rechercher un lieu, une adresse, une catégorie...">
+  </div>
+  <div class="filters-row">
+    <div class="field">
+      <label for="category">Catégorie</label>
+      <div class="select">
+        <select id="category" name="category">
+          <option value="">Toutes les catégories</option>
+          {% for key, label in category_plurals.items() %}
+          <option value="{{ key }}"{{ ' selected' if key == category }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {{ icon('chevron-down') }}
+      </div>
+    </div>
+    <div class="field">
+      <label for="sort">Trier par</label>
+      <div class="select">
+        <select id="sort" name="sort">
+          {% for key, label in sorts.items() %}
+          <option value="{{ key }}"{{ ' selected' if key == sort }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {{ icon('chevron-down') }}
+      </div>
+    </div>
+    <button type="submit" class="btn btn-primary">Appliquer</button>
+  </div>
+</form>
+
+{% if places %}
+<p class="result-count">
+  {{ places | length }} adresse{{ 's' if places | length > 1 }}
+  {%- if category %} dans « {{ category_plurals[category] }} »{% endif %}
+  {%- if search %} pour « {{ search }} »{% endif %}
+  {% if category or search %}<a href="{{ url_for('explore', sort=sort) }}">Tout afficher</a>{% endif %}
+</p>
+<div class="cards">
+  {% for place in places %}
+  {{ place_card(place, 2) }}
+  {% endfor %}
+</div>
+{% else %}
+<div class="empty">
+  <span class="empty-icon">{{ icon('search') }}</span>
+  <h2>Aucune adresse ne correspond</h2>
+  <p>Essayez un autre mot, une autre catégorie, ou partagez la première adresse !</p>
+  <p class="empty-actions">
+    <a class="btn btn-outline" href="{{ url_for('explore') }}">Tout afficher</a>
+    <a class="btn btn-primary" href="{{ url_for('place_create') }}">{{ icon('plus') }} Ajouter une adresse</a>
+  </p>
+</div>
+{% endif %}
+{% endblock %}

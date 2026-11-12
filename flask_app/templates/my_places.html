@@ -1,0 +1,42 @@
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon, cover, category_tag, rating %}
+
+{% block title %}Mes adresses{% endblock %}
+
+{% block content %}
+<header class="page-head">
+  <div>
+    <h1>Mes adresses</h1>
+    <p>Gérez vos adresses ajoutées</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('place_create') }}">{{ icon('plus') }} Ajouter une adresse</a>
+</header>
+
+{% if places %}
+<ul class="rows">
+  {% for place in places %}
+  <li class="row">
+    {{ cover(place, 'row-photo') }}
+    <div class="row-body">
+      <h2 class="row-name"><a href="{{ url_for('place', place_id=place['id']) }}">{{ place['name'] }}</a></h2>
+      <p class="row-line">{{ category_tag(place) }}<span class="row-address">{{ place['address'] }}</span></p>
+      <p class="row-line">{{ rating(place['average_rating'], place['review_count']) }}</p>
+    </div>
+    <div class="row-actions">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('place_edit', place_id=place['id']) }}">{{ icon('edit') }} Modifier</a>
+      <a class="btn btn-outline-danger btn-sm" href="{{ url_for('place_delete', place_id=place['id']) }}">{{ icon('trash') }} Supprimer</a>
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<div class="empty">
+  <span class="empty-icon">{{ icon('bookmark') }}</span>
+  <h2>Vous n'avez pas encore partagé d'adresse</h2>
+  <p>Un restaurant, un café, une plage... faites découvrir vos lieux préférés !</p>
+  <p class="empty-actions">
+    <a class="btn btn-primary" href="{{ url_for('place_create') }}">{{ icon('plus') }} Ajouter une adresse</a>
+  </p>
+</div>
+{% endif %}
+{% endblock %}

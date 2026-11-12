@@ -1,0 +1,56 @@
+{# Gabarit des pages de l'application : menu à gauche sur grand écran,
+   barre du haut et barre d'onglets en bas sur mobile. #}
+{% extends 'base.html' %}
+{% from '_macros.html' import icon, logo, csrf, flashes, avatar, nav_links, tabbar %}
+
+{% block body %}
+<div class="app">
+  <header class="topbar">
+    {{ logo('logo-inline') }}
+    <details class="menu">
+      <summary aria-label="Menu du compte">{{ icon('menu', 'menu-icon-open') }}{{ icon('x', 'menu-icon-close') }}</summary>
+      <div class="menu-panel">
+        {% if 'user' in session %}
+        <p class="account">{{ avatar(session['user']['username']) }}<span>{{ session['user']['username'] }}</span></p>
+        <a class="btn btn-primary btn-block" href="{{ url_for('place_create') }}">{{ icon('plus') }} Ajouter une adresse</a>
+        <form method="POST" action="{{ url_for('logout') }}">
+          {{ csrf() }}
+          <button type="submit" class="btn btn-outline btn-block">{{ icon('log-out') }} Se déconnecter</button>
+        </form>
+        {% else %}
+        <a class="btn btn-primary btn-block" href="{{ url_for('login') }}">Se connecter</a>
+        <a class="btn btn-outline btn-block" href="{{ url_for('register') }}">Créer un compte</a>
+        {% endif %}
+        <a class="menu-link" href="{{ url_for('credits') }}">Crédits</a>
+      </div>
+    </details>
+  </header>
+
+  <aside class="sidebar">
+    {{ logo() }}
+    <nav class="nav" aria-label="Navigation principale">{{ nav_links('nav-link') }}</nav>
+
+    <div class="sidebar-foot">
+      <p class="sidebar-label">Mon compte</p>
+      {% if 'user' in session %}
+      <p class="account">{{ avatar(session['user']['username']) }}<span>{{ session['user']['username'] }}</span></p>
+      <form method="POST" action="{{ url_for('logout') }}">
+        {{ csrf() }}
+        <button type="submit" class="nav-link nav-button">{{ icon('log-out') }}<span>Se déconnecter</span></button>
+      </form>
+      {% else %}
+      <a class="btn btn-primary btn-block" href="{{ url_for('login') }}">Se connecter</a>
+      <a class="btn btn-outline btn-block" href="{{ url_for('register') }}">Créer un compte</a>
+      {% endif %}
+      <a class="sidebar-credits" href="{{ url_for('credits') }}">Crédits</a>
+    </div>
+  </aside>
+
+  <main class="main{% block main_class %}{% endblock %}" id="contenu">
+    {{ flashes() }}
+    {% block content %}{% endblock %}
+  </main>
+
+  {{ tabbar() }}
+</div>
+{% endblock %}

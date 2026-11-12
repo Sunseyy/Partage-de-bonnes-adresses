@@ -1,30 +1,113 @@
-{% extends "base.html" %}
-{% from "_macros.html" import errors %}
-{% block title %}{{ title }}{% endblock %}
+{# Formulaire commun à l'ajout (place vaut None) et à la modification d'une adresse #}
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon, csrf, errors %}
+{% set editing = place is not none %}
+
+{% block title %}{{ "Modifier l'adresse" if editing else 'Ajouter une adresse' }}{% endblock %}
+
 {% block content %}
-<form method="POST">
-    <div class="mb-3">
-      <label for="name" class="form-label">Nom du lieu</label>
-      {{ form.name(id='name', class_='form-control') }}
+<header class="page-head">
+  <div>
+    {% if editing %}
+    <h1>Modifier l'adresse</h1>
+    <p>Mettez à jour les informations de « {{ place['name'] }} ».</p>
+    {% else %}
+    <h1>Ajouter une adresse</h1>
+    <p>Partagez une adresse que vous aimez !</p>
+    {% endif %}
+  </div>
+</header>
+
+<div class="form-layout">
+  {# enctype="multipart/form-data" est nécessaire pour envoyer la photo #}
+  <form class="card form" method="POST" enctype="multipart/form-data">
+    {{ csrf() }}
+    <div class="field">
+      <label for="name">Nom du lieu <span class="required" aria-hidden="true">*</span></label>
+      {{ form.name(id='name', class_='input', placeholder='Ex. Le Petit Nice', autocomplete='off') }}
       {{ errors(form.name) }}
     </div>
-    <div class="mb-3">
-      <label for="address" class="form-label">Adresse</label>
-      {{ form.address(id='address', class_='form-control') }}
+
+    <div class="field">
+      <label for="address">Adresse <span class="required" aria-hidden="true">*</span></label>
+      {{ form.address(id='address', class_='input', placeholder='Ex. Anse de Maldormé, 13007 Marseille', autocomplete='off') }}
       {{ errors(form.address) }}
-      <div class="form-text">Exemple : 7 Promenade Robert Laffont, 13002 Marseille</div>
+      <p class="field-hint">Indiquez la rue, le code postal et la ville : l'adresse sert à placer le lieu sur la carte.</p>
     </div>
-    <div class="mb-3">
-      <label for="category" class="form-label">Catégorie</label>
-      {{ form.category(id='category', class_='form-select') }}
+
+    <div class="field">
+      <label for="category">Catégorie <span class="required" aria-hidden="true">*</span></label>
+      <div class="select">
+        <select id="category" name="category" required>
+          <option value="" disabled{{ ' selected' if form.category.data not in categories }}>Sélectionner une catégorie</option>
+          {% for key, label in categories.items() %}
+          <option value="{{ key }}"{{ ' selected' if form.category.data == key }}>{{ label }}</option>
+          {% endfor %}
+        </select>
+        {{ icon('chevron-down') }}
+      </div>
       {{ errors(form.category) }}
     </div>
-    <div class="mb-3">
-      <label for="description" class="form-label">Description</label>
-      {{ form.description(id='description', class_='form-control', rows=4) }}
+
+    <div class="field">
+      <label for="description">Description <span class="required" aria-hidden="true">*</span></label>
+      {{ form.description(id='description', class_='input', rows=5, placeholder="Décrivez le lieu, l'ambiance, ce que vous aimez...") }}
       {{ errors(form.description) }}
     </div>
-    <button type="submit" class="btn btn-primary">Enregistrer</button>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-</form>
+
+    <div class="field">
+      <label for="photo">Photo <span class="optional">(facultatif)</span></label>
+      <div class="photo-row">
+        {% if editing and place['photo'] %}
+        <div class="current-photo">
+          <img class="cover" src="{{ url_for('photo', filename=place['photo']) }}" alt="Photo actuelle de {{ place['name'] }}">
+          <label class="check">
+            <input type="checkbox" name="remove_photo" value="y"{{ ' checked' if form.remove_photo.data }}>
+            <span>Retirer cette photo</span>
+          </label>
+        </div>
+        {% endif %}
+        {# Le champ fichier fonctionne seul ; static/app.js ajoute le glisser-déposer et l'aperçu #}
+        <div class="dropzone" data-dropzone data-max-size="{{ max_upload }}">
+          <canvas class="dropzone-preview" width="320" height="200" hidden></canvas>
+          <span class="dropzone-icon">{{ icon('image') }}</span>
+          <span class="dropzone-title">{{ 'Changer de photo' if editing and place['photo'] else 'Ajouter une photo' }}</span>
+          <span class="dropzone-hint js-only">(ou glisser déposer)</span>
+          <input id="photo" type="file" name="photo" accept="image/jpeg,image/png,image/webp">
+          <span class="dropzone-formats">JPEG, PNG ou WebP · 10 Mo maximum</span>
+        </div>
+      </div>
+      <button type="button" class="link-button" data-dropzone-clear hidden>Retirer la photo choisie</button>
+      <p class="field-error" data-dropzone-error hidden>{{ icon('alert-circle') }}<span></span></p>
+      {{ errors(form.photo) }}
+    </div>
+
+    <div class="form-actions">
+      {% if editing %}
+      <a class="btn btn-outline btn-lg" href="{{ url_for('place', place_id=place['id']) }}">Annuler</a>
+      <button type="submit" class="btn btn-primary btn-lg">Enregistrer les modifications</button>
+      {% else %}
+      <button type="submit" class="btn btn-primary btn-lg btn-block">Ajouter l'adresse</button>
+      {% endif %}
+    </div>
+  </form>
+
+  <aside class="form-aside">
+    <section class="card">
+      <h2>Catégories</h2>
+      <ul class="category-list">
+        {% for key, label in category_plurals.items() %}
+        <li><span class="cat-disc cat-{{ key }}">{{ icon('cat-' ~ key) }}</span>{{ label }}</li>
+        {% endfor %}
+      </ul>
+    </section>
+    <section class="card tip">
+      <span class="tip-icon">{{ icon('lightbulb') }}</span>
+      <div>
+        <h2>Astuce</h2>
+        <p>Ajoutez une photo pour rendre votre adresse plus attractive !</p>
+      </div>
+    </section>
+  </aside>
+</div>
 {% endblock %}

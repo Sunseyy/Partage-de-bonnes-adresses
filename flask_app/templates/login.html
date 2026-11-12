@@ -1,20 +1,29 @@
-{% extends "base.html" %}
-{% from "_macros.html" import errors %}
-{% block title %}Connexion{% endblock %}
-{% block content %}
-<form method="POST">
-    <div class="mb-3">
-      <label for="username" class="form-label">Nom d'utilisateur</label>
-      {{ form.username(id='username', class_='form-control') }}
-      {{ errors(form.username) }}
-    </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">Mot de passe</label>
-      {{ form.password(id='password', class_='form-control') }}
-      {{ errors(form.password) }}
-    </div>
-    <button type="submit" class="btn btn-primary">Se connecter</button>
-    <a class="btn btn-link" href="{{ url_for('register') }}">Créer un compte</a>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+{% extends 'auth.html' %}
+{% from '_macros.html' import csrf, errors, password_input %}
+
+{% block title %}Se connecter{% endblock %}
+
+{% block card %}
+<h1>Se connecter</h1>
+
+{# Pas d'attribut action : le formulaire est renvoyé à l'adresse de la page,
+   ce qui conserve le paramètre « next » (page à rouvrir après la connexion). #}
+<form class="form" method="POST">
+  {{ csrf() }}
+  <div class="field">
+    <label for="username">Nom d'utilisateur</label>
+    {{ form.username(id='username', class_='input', placeholder='Ex. sara.beldi',
+                     autocomplete='username', autocapitalize='none', spellcheck='false') }}
+    {{ errors(form.username) }}
+  </div>
+  <div class="field">
+    <label for="password">Mot de passe</label>
+    {{ password_input(form.password, 'password', 'Votre mot de passe', 'current-password', toggles='password') }}
+    {{ errors(form.password) }}
+  </div>
+  <button type="submit" class="btn btn-primary btn-block btn-lg">Se connecter</button>
 </form>
+
+<p class="separator"><span>ou</span></p>
+<a class="btn btn-outline btn-block btn-lg" href="{{ url_for('register') }}">Créer un compte</a>
 {% endblock %}

@@ -1,24 +1,35 @@
-{% extends "base.html" %}
-{% from "_macros.html" import errors %}
-{% block title %}Inscription{% endblock %}
-{% block content %}
-<form method="POST">
-    <div class="mb-3">
-      <label for="username" class="form-label">Nom d'utilisateur</label>
-      {{ form.username(id='username', class_='form-control') }}
-      {{ errors(form.username) }}
-    </div>
-    <div class="mb-3">
-      <label for="password" class="form-label">Mot de passe (8 caractères minimum)</label>
-      {{ form.password(id='password', class_='form-control') }}
-      {{ errors(form.password) }}
-    </div>
-    <div class="mb-3">
-      <label for="confirm" class="form-label">Confirmation</label>
-      {{ form.confirm(id='confirm', class_='form-control') }}
-      {{ errors(form.confirm) }}
-    </div>
-    <button type="submit" class="btn btn-primary">Créer mon compte</button>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+{% extends 'auth.html' %}
+{% from '_macros.html' import icon, csrf, errors, password_input %}
+
+{% block title %}Créer un compte{% endblock %}
+
+{% block card %}
+<a class="back-link" href="{{ url_for('login') }}" data-back="{{ url_for('login') }}">{{ icon('arrow-left') }} Retour</a>
+<h1>Créer un compte</h1>
+<p class="auth-lead">Rejoignez la communauté et partagez vos bonnes adresses !</p>
+
+<form class="form" method="POST">
+  {{ csrf() }}
+  <div class="field">
+    <label for="username">Nom d'utilisateur</label>
+    {{ form.username(id='username', class_='input', placeholder='Ex. sara.beldi',
+                     autocomplete='username', autocapitalize='none', spellcheck='false') }}
+    {{ errors(form.username) }}
+    <p class="field-hint">3 à 32 caractères : lettres, chiffres, points, tirets et underscores.</p>
+  </div>
+  <div class="field">
+    <label for="password">Mot de passe</label>
+    {{ password_input(form.password, 'password', 'Votre mot de passe', 'new-password', toggles='password confirm') }}
+    {{ errors(form.password) }}
+    <p class="field-hint">8 caractères minimum.</p>
+  </div>
+  <div class="field">
+    <label for="confirm">Confirmer le mot de passe</label>
+    {{ password_input(form.confirm, 'confirm', 'Confirmez votre mot de passe', 'new-password') }}
+    {{ errors(form.confirm) }}
+  </div>
+  <button type="submit" class="btn btn-primary btn-block btn-lg">S'inscrire</button>
 </form>
+
+<p class="auth-switch">Déjà un compte ? <a href="{{ url_for('login') }}">Se connecter</a></p>
 {% endblock %}

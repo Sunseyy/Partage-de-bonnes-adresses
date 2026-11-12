@@ -8,3 +8,4 @@ pyopenssl
 flask-talisman
 argon2-cffi
 Flask-Session
+pillow

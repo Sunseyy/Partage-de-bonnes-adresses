@@ -1,10 +1,30 @@
-{% extends "base.html" %}
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon, csrf, cover, category_tag, rating %}
+
 {% block title %}Supprimer l'adresse{% endblock %}
+
 {% block content %}
-<p>Voulez-vous vraiment supprimer <strong>{{ place['name'] }}</strong> ? Les avis associés seront aussi supprimés.</p>
-<form method="POST">
-    <button type="submit" class="btn btn-danger">Confirmer la suppression</button>
-    <a class="btn btn-outline-secondary" href="{{ url_for('place', place_id=place['id']) }}">Annuler</a>
-    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-</form>
+<header class="page-head">
+  <div>
+    <h1>Supprimer l'adresse</h1>
+    <p>Cette action est définitive.</p>
+  </div>
+</header>
+
+<section class="card confirm">
+  <div class="confirm-place">
+    {{ cover(place, 'row-photo') }}
+    <div>
+      <p class="row-name">{{ place['name'] }}</p>
+      <p class="row-line">{{ category_tag(place) }}</p>
+      <p class="row-line">{{ rating(place['average_rating'], place['review_count']) }}</p>
+    </div>
+  </div>
+  <p>Voulez-vous vraiment supprimer <strong>{{ place['name'] }}</strong> ? Les avis associés seront aussi supprimés.</p>
+  <form class="form-actions" method="POST">
+    {{ csrf() }}
+    <a class="btn btn-outline" href="{{ url_for('my_places') }}">Annuler</a>
+    <button type="submit" class="btn btn-danger">{{ icon('trash') }} Confirmer la suppression</button>
+  </form>
+</section>
 {% endblock %}

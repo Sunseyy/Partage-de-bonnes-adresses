@@ -1,0 +1,17 @@
+{# Page d'erreur (400, 403, 404, 405, 413 ou 500) : voir ERRORS dans __init__.py #}
+{% extends 'layout.html' %}
+{% from '_macros.html' import icon %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="empty error-page">
+  <p class="error-code">Erreur {{ code }}</p>
+  <h1>{{ title }}</h1>
+  <p>{{ message }}</p>
+  <p class="empty-actions">
+    <a class="btn btn-outline" href="{{ url_for('home') }}">{{ icon('home') }} Accueil</a>
+    <a class="btn btn-primary" href="{{ url_for('explore') }}">{{ icon('compass') }} Explorer les adresses</a>
+  </p>
+</div>
+{% endblock %}

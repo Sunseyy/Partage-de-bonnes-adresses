@@ -1,8 +1,17 @@
-@"
+# Environnement virtuel Python
 .venv/
+venv/
+
+# Fichiers générés par Python et par les tests
 __pycache__/
 *.py[cod]
-.env
 .pytest_cache/
 .coverage
-"@ | Set-Content .gitignore
+
+# Configuration locale : contient la clé secrète, ne jamais la publier
+.env
+
+# Données créées en faisant tourner l'application
+database.sqlite
+flask_session/
+uploads/
