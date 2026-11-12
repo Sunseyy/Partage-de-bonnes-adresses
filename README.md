@@ -1,6 +1,7 @@
 # Partage de bonnes adresses
 
-Projet universitaire de programmation web (sujet n°8).
+Projet universitaire de programmation web (sujet n°8). 
+Bonne lecture ^^
 
 ## Présentation
 
@@ -133,13 +134,7 @@ Partage-de-bonnes-adresses/
     └── test_*.py         tests
 ```
 
-## Travail en équipe
 
-Le projet est développé en collaboration à l'aide de Git et GitHub.
-
-- `main` : branche principale contenant la version stable du projet.
-- `feature/*` : branches dédiées au développement des fonctionnalités.
-- Les modifications sont proposées via des Pull Requests avant leur intégration dans `main`.
 
 ## État du projet
 
@@ -174,4 +169,4 @@ Les photos de démonstration viennent de [Wikimedia Commons](https://commons.wik
 
 ## Licence
 
-Projet réalisé dans le cadre d'un travail universitaire.
+Projet réalisé dans le cadre d'un travail universitaire pourle Master R&T Promos 2026-2027. ^^
